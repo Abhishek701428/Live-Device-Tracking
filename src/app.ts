@@ -4,7 +4,6 @@ import http from 'http';
 import bodyParser from 'body-parser';
 import db from './database/db';
 import usersRoutes from './modules/users/usersRoutes';
-import searchAllRoutes from './modules/search/allRouter';
 import overviewRoutes from './modules/overview/overviewRouterAll/routers';
 import maintenanceRouter from './modules/maintenance/maintenanceRouterAll/router';
 import complianceRouter from './modules/compliance/complianceRouterAll/routers';
@@ -35,7 +34,6 @@ app.get('/', (req: Request, res: Response) => {
 
 // Middleware
 app.use('/api', usersRoutes);
-app.use('/api', searchAllRoutes);
 app.use('/api/overview', overviewRoutes);
 app.use('/api/compliance', complianceRouter);
 app.use('/api/maintenance', maintenanceRouter);

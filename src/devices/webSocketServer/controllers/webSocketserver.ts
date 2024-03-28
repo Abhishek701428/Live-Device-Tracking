@@ -104,9 +104,9 @@ const initWebSocketServer = (httpServer: HttpServer) => {
         }
     });
 
-    Subscription.watch().on('change', async (change) => {
+    Subscription.watch().on('change', async (change: any) => {
         try {
-            const updatedData = await Subscription.findOne({ deviceId: change.fullDocument.deviceId }).sort({ nowTime: -1 }).limit(1);
+            const updatedData = await Subscription.findOne({ deviceId: change?.fullDocument?.deviceId }).sort({ nowTime: -1 }).limit(1);
             if (updatedData) {
                 io.emit('realTimeDataUpdate', updatedData);
             }
@@ -117,4 +117,5 @@ const initWebSocketServer = (httpServer: HttpServer) => {
 
     return io;
 };
+
 export default initWebSocketServer;

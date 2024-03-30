@@ -8,7 +8,8 @@ dotenv.config();
 export const authenticateAndAuthorize = (
   allowedUserTypes: string[]
 ) => async (req: Request, res: Response, next: NextFunction) => {
- const token = req.headers.authorization?.split(' ')[1] || req.header('Authorization');
+  // const token = req.header('Authorization');
+  const token = req.headers.authorization?.split(' ')[1] || req.header('Authorization');
 
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });

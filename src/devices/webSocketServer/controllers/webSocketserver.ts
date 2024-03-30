@@ -1,4 +1,4 @@
-import Subscription from '../../webSocketServer/models/subscriptionModel';
+import Subscription from '../models/subscriptionModel';
 import { Server as SocketIOServer } from 'socket.io';
 import * as mqtt from 'mqtt';
 import { Server as HttpServer } from 'http';
@@ -11,8 +11,8 @@ const MAX_DATA_COUNT = 5;
 let devicesData: { [deviceId: string]: any[] } = {};
 
 const saveDataToMongo = async (deviceID: string) => {
-    const dataToSave = devicesData[deviceID].splice(0, MAX_DATA_COUNT);
-    if (dataToSave.length > 0) {
+    if (devicesData[deviceID].length >= MAX_DATA_COUNT) {
+        const dataToSave = devicesData[deviceID].splice(0, MAX_DATA_COUNT);
         try {
             const currentDate = new Date();
             const currentTime = currentDate.getTime();
@@ -62,8 +62,12 @@ const initWebSocketServer = (httpServer: HttpServer) => {
             const jsonData = JSON.parse(message.toString());
             const deviceID = topic.split('/').pop();
             console.log(`Received real-time data from device ${deviceID}:`, jsonData);
+            devicesData[deviceID] = devicesData[deviceID] || [];
+            devicesData[deviceID].push(jsonData);
+            if (devicesData[deviceID].length >= MAX_DATA_COUNT) {
+                await saveDataToMongo(deviceID);
+            }
             io.to(deviceID).emit('realTimeData', jsonData);
-            io.to(deviceID).emit('realTimeData', { deviceID, data: jsonData });
         } catch (error) {
             console.error('Error parsing JSON:', error);
         }
@@ -80,18 +84,19 @@ const initWebSocketServer = (httpServer: HttpServer) => {
     io.on('connection', async (socket: Socket) => {
         console.log('A client connected');
         try {
-            const token = socket.handshake.query.token as string;
+            const token: string = Array.isArray(socket.handshake.query.token) ? socket.handshake.query.token[0] : socket.handshake.query.token;
+            console.log('Received token:', token);
             if (!token) {
                 throw new Error('JWT token not provided');
             }
             const decodedToken: any = jwt.verify(token, process.env.AUTH_SECRET_KEY);
             const userDevices = decodedToken.devicesId;
-            if (typeof userDevices === 'string') {
+            console.log(userDevices);
+
+            if (!Array.isArray(userDevices)) {
                 socket.join(userDevices);
-            } else if (Array.isArray(userDevices)) {
-                for (const device of userDevices) {
-                    socket.join(device);
-                }
+            } else {
+                userDevices.forEach(device => socket.join(device));
             }
 
             const lastData = await Subscription.find({ deviceId: { $in: userDevices } }).sort({ nowTime: -1 }).limit(1);
@@ -106,9 +111,11 @@ const initWebSocketServer = (httpServer: HttpServer) => {
 
     Subscription.watch().on('change', async (change: any) => {
         try {
-            const updatedData = await Subscription.findOne({ deviceId: change?.fullDocument?.deviceId }).sort({ nowTime: -1 }).limit(1);
-            if (updatedData) {
-                io.emit('realTimeDataUpdate', updatedData);
+            if (change.fullDocument) {
+                const updatedData = await Subscription.findOne({ deviceId: change.fullDocument.deviceId }).sort({ nowTime: -1 }).limit(1);
+                if (updatedData) {
+                    io.emit('realTimeDataUpdate', updatedData);
+                }
             }
         } catch (error) {
             console.error('Error fetching updated data:', error);

@@ -3,7 +3,7 @@ import { Schema, model, Document } from 'mongoose';
 interface Vehicle extends Document {
   name: string;
   location: string;
-  lastTrip:number;
+  lastTrip:string;
   status: {
     type: Boolean,
     required: true,
@@ -21,7 +21,7 @@ interface Vehicle extends Document {
 const vehicleSchema = new Schema<Vehicle>({
   name: { type: String, required: true, unique: true},
   location: { type: String, required: true },
-  lastTrip: {type:Number, required:true},
+  lastTrip: {type:String, required:true},
   status: { 
     type: Boolean,
     required: true,
@@ -37,6 +37,6 @@ const vehicleSchema = new Schema<Vehicle>({
   action:String
 });
 
-const VehicleModel = model<Vehicle>('Vehicle', vehicleSchema);
+const VehicleModel = model<Vehicle>('Assetsvehicle', vehicleSchema);
 
 export default VehicleModel;

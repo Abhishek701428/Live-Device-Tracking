@@ -2,9 +2,24 @@ import { Request, Response } from 'express';
 import VehicleModel from '../models/vehicles.models';
 
 // Create a new vehicle
+// Define a function to create a new vehicle and save it to the database
 export const createVehicle = async (req: Request, res: Response): Promise<void> => {
   try {
-    const newVehicle = new VehicleModel(req.body);
+    const newVehicleData = {
+      name: req.body.name,
+      location: req.body.location,
+      lastTrip: req.body.lastTrip,
+      status: req.body.status,
+      currentDriver: {
+        name: req.body.currentDriver.name
+      },
+      currentFuelLevel: req.body.currentFuelLevel,
+      licensePlate: req.body.licensePlate,
+      tags: req.body.tags,
+      action: req.body.action
+    };
+
+    const newVehicle = new VehicleModel(newVehicleData);
     const savedVehicle = await newVehicle.save();
     res.status(201).json(savedVehicle);
   } catch (error) {
@@ -12,6 +27,7 @@ export const createVehicle = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 // Get all vehicles
 export const getAllVehicles = async (req: Request, res: Response): Promise<void> => {

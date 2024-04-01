@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface Device extends Document {
+export interface DeviceSaved extends Document {
   messages_ttl: number;
   protocol_id: number;
   device_type_id: number;
@@ -17,11 +17,14 @@ interface Device extends Document {
   messages_rotate: number;
 }
 
-const deviceSchema: Schema<Device> = new Schema({
+const DeviceSavedSchema: Schema<DeviceSaved> = new Schema({
   messages_ttl: Number,
   protocol_id: Number,
   device_type_id: Number,
-  id: Number,
+  id: {
+    type: Number,
+    unique: true,
+  },
   media_ttl: Number,
   name: String,
   configuration: {
@@ -34,6 +37,4 @@ const deviceSchema: Schema<Device> = new Schema({
   messages_rotate: Number
 });
 
-const Device = mongoose.model<Device>('Device', deviceSchema);
-
-export default Device;
+export default mongoose.model<DeviceSaved>('Device', DeviceSavedSchema);

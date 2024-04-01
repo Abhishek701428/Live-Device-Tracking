@@ -1,12 +1,17 @@
 import express, { Request, Response } from 'express';
-import { getAllDevices } from '../allDevices/controllers/deviceController';
+const router = express.Router();
+import * as Device from '../allDevices/controllers/deviceController';
 import { getSpecificById } from '../allDevices/controllers/getSpecificDevicebyId';
 import Subscription from '../webSocketServer/models/subscriptionModel';
-const router = express.Router();
 import { authenticateJWT } from '../../middleware/deviceMiddleware';
 
-router.get('/devices', authenticateJWT, getAllDevices);
+// router.post('/devices/savedDevices', createDevice); 
+router.get('/devices', authenticateJWT,Device. getAllDevices);
 router.get('/devices/specificData/:id', getSpecificById);
+router.post('/devices/savedDevices',Device.createDevice);
+router.get('/devices/getAll',Device.getAllDevicesSeved);
+router.put('/devices/update/:id',Device.updateDevice);
+router.delete('/devices/delete/:id',Device.deleteDevice);
 router.get('/last-data', authenticateJWT, async (req: Request, res: Response) => {
   try {
     if (!(req as any).user) {

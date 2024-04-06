@@ -78,16 +78,18 @@ const registerAllUser = async (req: Request, res: Response) => {
 
     const requester = (req as any).user as IUser;
 
-    if (!['superadmin', 'admin'].includes(requester.usertype)) {
-      return res.status(403).json({ message: 'Access denied. Not a superadmin or admin.' });
+    if (requester.usertype === 'superadmin') {
+      if (usertype !== 'admin') {
+        return res.status(400).json({ message: 'Invalid usertype. Only "admin" is allowed.' });
+      }
     }
+    else if (requester.usertype === 'admin') {
+      if (!['admin', 'user'].includes(usertype)) {
+        return res.status(400).json({ message: 'Invalid usertype. Only "admin" or "user" is allowed for admins.' });
+      }
+    } else {
 
-    if (!['admin', 'user'].includes(usertype)) {
-      return res.status(400).json({ message: 'Invalid usertype. Only "admin" or "user" is allowed.' });
-    }
-
-    if (requester.usertype === 'user') {
-      return res.status(403).json({ message: 'Access denied. Only superadmins or admins can register users.' });
+      return res.status(403).json({ message: 'Access denied. Only superadmins or admins can register users or admins.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

@@ -78,26 +78,20 @@ const registerAllUser = async (req: Request, res: Response) => {
 
     const requester = (req as any).user as IUser;
 
-    if (requester.usertype === 'superadmin') {
-      if (usertype !== 'admin') {
-        return res.status(400).json({ message: 'Invalid usertype. Only "admin" is allowed.' });
-      }
+    if (requester.usertype !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Only admins can register users.' });
     }
-    else if (requester.usertype === 'admin') {
-      if (!['admin', 'user'].includes(usertype)) {
-        return res.status(400).json({ message: 'Invalid usertype. Only "admin" or "user" is allowed for admins.' });
-      }
-    } else {
 
-      return res.status(403).json({ message: 'Access denied. Only superadmins or admins can register users or admins.' });
+    if (usertype !== 'user') {
+      return res.status(400).json({ message: 'Invalid usertype. Only "user" is allowed.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUserOrAdmin = new UserModel({ name, email, password: hashedPassword, usertype, devicesId });
-    await newUserOrAdmin.save();
+    const newUser = new UserModel({ name, email, password: hashedPassword, usertype, devicesId });
+    await newUser.save();
 
-    res.status(201).json({ message: 'User or Admin created successfully', newUserOrAdmin });
+    res.status(201).json({ message: 'User created successfully', newUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });
